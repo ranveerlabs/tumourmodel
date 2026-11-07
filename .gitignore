@@ -1,0 +1,14 @@
+# py stuff
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# venv(s)
+.venv
+
+# mri data
+/p[0-9]*/
+/*.tsv
