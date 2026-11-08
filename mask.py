@@ -9,10 +9,31 @@ source (CC0) is https://doi.org/10.6084/m9.figshare.21249516'''
 import torch, nibabel
 
 class data(torch.utils.data.Dataset):
+    
     def __init__(self, future_visits):
-        self.pairs = future_visits
+        self.future_visits = future_visits
+    
     def __len__(self):
         return len(self.future_visits)
+    
+    def __getitem__(self,index):
+        patient,current,future=self.future_visits[index]
+        currentPath=f'{patient}/w{current}'
+        futurePath=f'{patient}/w{future}'
+        scan=nibabel.load(f'{currentPath}/skull.nii.gz')
+        scan2=nibabel.load(f'{currentPath}/mask.nii.gz')
+        scan3=nibabel.load(f'{futurePath}/mask.nii.gz')
+        mri=torch.from_numpy(scan.get_fdata(dtype='float32'))>0
+        mask=torch.from_numpy(scan2.get_fdata(dtype='float16'))>0
+        futureMask=torch.from_numpy(scan3.get_fdata(dtype='float16'))>0
+        gap=future-current>0
+        return {
+            'mri':mri.unsqueeze(0).float(),
+            'mask':mask.unsqueeze(0).float(),
+            'gap':torch.tensor(gap, dtype=torch.float32),
+            'target':futureMask.unsqueeze(0).float(),
+        }
+
 
 patients = {
     'p1': [44, 56],
@@ -24,6 +45,8 @@ future_visits = []
 
 for patient, weeks in patients.items():
     for i in range(len(weeks) - 1):
-        pairs.append((patient, weeks[i], weeks[i + 1]))
+        future_visits.append((patient, weeks[i], weeks[i + 1]))
 
-print(len(data(future_visits)))
+dataset=data(future_visits)
+example=dataset[0]
+print(example['target'].unique(),example['mask'].unique(),example['gap'].item())
