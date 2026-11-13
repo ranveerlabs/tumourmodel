@@ -23,10 +23,10 @@ class data(torch.utils.data.Dataset):
         scan=nibabel.load(f'{currentPath}/skull.nii.gz')
         scan2=nibabel.load(f'{currentPath}/mask.nii.gz')
         scan3=nibabel.load(f'{futurePath}/mask.nii.gz')
-        mri=torch.from_numpy(scan.get_fdata(dtype='float32'))>0
+        mri=torch.from_numpy(scan.get_fdata(dtype='float32'))
         mask=torch.from_numpy(scan2.get_fdata(dtype='float16'))>0
         futureMask=torch.from_numpy(scan3.get_fdata(dtype='float16'))>0
-        gap=future-current>0
+        gap = float(future - current)
         return {
             'mri':mri.unsqueeze(0).float(),
             'mask':mask.unsqueeze(0).float(),
